@@ -309,10 +309,8 @@
       }
     }
 
-    300
-      312
-        () {
-      if (!selectedGameId) {
+        async function updateLiveOdds() {
+                    if (!selectedGameId) {
         showStatus('Please select a game first', 'error');
         return;
       }
@@ -327,8 +325,8 @@
           return;
         }
 
-        parseProps(data.data);
-        showStatus('✅ Props updated!', 'success');
+            function parseProps(propsData) {
+                  showStatus('✅ Props updated!', 'success');
       } catch (error) {
         showStatus(`Error: ${error.message}`, 'error');
       }
