@@ -1,235 +1,423 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>NFL Props Analyzer - Real-Time</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFL Props Analyzer</title>
   <style>
-    body { font-family: Arial; background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; margin: 0; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { color: white; text-align: center; margin-bottom: 10px; }
-    .subtitle { color: white; text-align: center; opacity: 0.9; margin-bottom: 20px; font-size: 14px; }
-    .status { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-    .status.loading { background: #fff9e6; color: #f59e0b; }
-    .status.live { background: #e6f7ff; color: #10b981; }
-    .card { background: white; padding: 20px; border-radius: 10px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-    .card h2 { margin: 0 0 15px 0; color: #333; }
-    select { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #667eea; border-radius: 8px; }
-    button { padding: 10px 20px; margin: 5px; border: none; background: #667eea; color: white; border-radius: 20px; cursor: pointer; font-weight: bold; }
-    button:hover { background: #5568d3; }
-    button.active { background: #764ba2; }
-    .prop { background: #f8f9fa; padding: 18px; margin: 12px 0; border-radius: 10px; border-left: 5px solid #667eea; }
-    .prop strong { font-size: 18px; color: #333; }
-    .prop-detail { margin: 8px 0; color: #555; }
-    .stats-row { display: flex; gap: 20px; margin: 10px 0; flex-wrap: wrap; }
-    .stat-item { background: white; padding: 10px; border-radius: 8px; }
-    .refresh-btn { background: #10b981; margin-bottom: 15px; width: 100%; }
-    .refresh-btn:hover { background: #059669; }
-    .live-dot { display: inline-block; width: 10px; height: 10px; background: #10b981; border-radius: 50%; margin-right: 8px; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 30px;
+    }
+
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #999;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .status {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      color: #856404;
+      font-size: 13px;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+
+    .status.success {
+      background: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      background: #28a745;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: #6c757d;
+      margin-top: 10px;
+    }
+
+    button.secondary:hover {
+      background: #5a6268;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: #e9ecef;
+      border: 2px solid #dee2e6;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #495057;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .filter-btn:hover {
+      border-color: #667eea;
+    }
+
+    .props-container {
+      margin-top: 30px;
+    }
+
+    .props-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .prop {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .prop:hover {
+      background: #e9ecef;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .prop-player {
+      font-weight: 700;
+      color: #333;
+      font-size: 15px;
+      margin-bottom: 5px;
+    }
+
+    .prop-type {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .prop-odds {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .loading {
+      text-align: center;
+      color: #999;
+      padding: 20px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #999;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>NFL Props Analyzer</h1>
-    <div class="subtitle">Real-time live prop odds from sportsbooks</div>
-    
-    <div class="status loading" id="status">
-      <span class="live-dot"></span>
-      <span id="statusText">Connecting to live odds data...</span>
+    <h1>🏈 NFL Props Analyzer</h1>
+    <p class="subtitle">Real-time live prop odds from sportsbooks</p>
+
+    <div id="status" class="status"></div>
+
+    <div class="section">
+      <div class="form-group">
+        <label for="gameSelect">Select Game</label>
+        <select id="gameSelect">
+          <option value="">- Pick a Game -</option>
+        </select>
+      </div>
+      <button onclick="refreshGames()" class="primary">🔄 Refresh Games</button>
     </div>
 
-    <div class="card" id="gameCard" style="display:none;">
-      <h2>Select Game</h2>
-      <select id="game" onchange="loadGame()">
-        <option value="">-- Pick a Game --</option>
-      </select>
-      <button class="refresh-btn" onclick="refreshGames()">Refresh Games</button>
-    </div>
-    
-    <div class="card" id="filters" style="display:none;">
-      <h2>Filter Props</h2>
-      <button class="active" onclick="filterProps('all', this)">All Props</button>
-      <button onclick="filterProps('pass', this)">Passing</button>
-      <button onclick="filterProps('rush', this)">Rushing</button>
-      <button onclick="filterProps('rec', this)">Receiving</button>
-      <button onclick="filterProps('td', this)">Touchdowns</button>
-      <button class="refresh-btn" onclick="refreshProps()">Update Live Odds</button>
-    </div>
-    
-    <div id="props"></div>
-
-    <div class="card" id="recommendations" style="display:none;">
-      <h2>Live Props</h2>
-      <div id="recsBody"></div>
+    <div class="section">
+      <label>Filter Props</label>
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterProps('all')">All Props</button>
+        <button class="filter-btn" onclick="filterProps('pass_yds')">Passing Yards</button>
+        <button class="filter-btn" onclick="filterProps('pass_tds')">Pass TDs</button>
+        <button class="filter-btn" onclick="filterProps('rush_yds')">Rushing Yards</button>
+        <button class="filter-btn" onclick="filterProps('rec_yds')">Receiving Yards</button>
+      </div>
+      <button onclick="updateLiveOdds()" class="primary">📊 Update Live Odds</button>
     </div>
 
-    <div id="error"></div>
+    <div class="props-container">
+      <div class="props-title">Player Props</div>
+      <div id="propsList" class="empty">Select a game to see props</div>
+    </div>
   </div>
-  
+
   <script>
-    const API_BASE = 'https://nfl-props-api-seven.vercel.app/';
-    
-    let games = [];
-    let currentGame = null;
-    let filterType = 'all';
+    const API_BASE = 'https://nfl-props-api-seven.vercel.app';
+    let allProps = [];
+    let currentFilter = 'all';
+    let selectedGameId = null;
 
-    window.onload = function() {
-      console.log('App loaded, API:', API_BASE);
-      loadLiveGames();
-      setInterval(refreshProps, 30000);
-    };
+    function showStatus(message, type = 'info') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status ' + type;
+      if (type !== 'info') setTimeout(() => status.textContent = '', 5000);
+    }
 
-    async function loadLiveGames() {
+    async function refreshGames() {
+      showStatus('⏳ Fetching games...', 'info');
       try {
-        updateStatus('Fetching live NFL games...', 'loading');
-        
-        const url = API_BASE + '/api/games?action=games';
-        console.log('Fetching from:', url);
-        
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE}/api/games?action=games`);
         const data = await response.json();
-        console.log('Games response:', data);
-        
-        if (data.events && data.events.length > 0) {
-          populateGames(data.events);
-          updateStatus('Connected to live odds', 'live');
-        } else {
-          loadSampleGames();
-          updateStatus('Using sample data (no live games)', 'loading');
+
+        if (!data.success || !data.events || data.events.length === 0) {
+          showStatus('No games found. Check your API key.', 'error');
+          return;
         }
+
+        const select = document.getElementById('gameSelect');
+        select.innerHTML = '<option value="">- Pick a Game -</option>';
+
+        data.events.forEach(game => {
+          const option = document.createElement('option');
+          option.value = game.id;
+          option.textContent = `${game.away_team} @ ${game.home_team} (${new Date(game.commence_time).toLocaleTimeString()})`;
+          select.appendChild(option);
+        });
+
+        showStatus(`✅ Found ${data.events.length} games!`, 'success');
       } catch (error) {
-        console.error('Error loading games:', error);
-        loadSampleGames();
-        updateStatus('Using sample data (error connecting)', 'loading');
+        showStatus(`Error: ${error.message}`, 'error');
       }
     }
 
-    async function refreshProps() {
-      if (!currentGame) return;
-      try {
-        const url = API_BASE + '/api/props?action=props';
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.success) {
-          renderProps();
-        }
-      } catch (error) {
-        console.log('Could not refresh:', error);
-      }
-    }
-
-    function refreshGames() {
-      loadLiveGames();
-    }
-
-    function populateGames(gameList) {
-      games = gameList;
-      const select = document.getElementById('game');
-      select.innerHTML = '<option value="">-- Pick a Game --</option>';
-
-      gameList.forEach((game, idx) => {
-        const option = document.createElement('option');
-        option.value = idx;
-        const away = (game.away_team || game.away_name || 'Away');
-        const home = (game.home_team || game.home_name || 'Home');
-        option.textContent = `${away} @ ${home}`;
-        select.appendChild(option);
-      });
-
-      document.getElementById('gameCard').style.display = 'block';
-    }
-
-    function loadSampleGames() {
-      games = [
-        { away_team: 'Kansas City Chiefs', home_team: 'Buffalo Bills' },
-        { away_team: 'San Francisco 49ers', home_team: 'Dallas Cowboys' },
-        { away_team: 'Denver Broncos', home_team: 'LA Chargers' }
-      ];
-
-      const select = document.getElementById('game');
-      select.innerHTML = '<option value="">-- Pick a Game --</option>';
-      games.forEach((game, idx) => {
-        const option = document.createElement('option');
-        option.value = idx;
-        option.textContent = `${game.away_team} @ ${game.home_team}`;
-        select.appendChild(option);
-      });
-
-      document.getElementById('gameCard').style.display = 'block';
-    }
-
-    function loadGame() {
-      const idx = document.getElementById('game').value;
-      if (idx === '') {
-        currentGame = null;
-        document.getElementById('filters').style.display = 'none';
-        document.getElementById('props').innerHTML = '';
+    async function updateLiveOdds() {
+      if (!selectedGameId) {
+        showStatus('Please select a game first', 'error');
         return;
       }
-      currentGame = games[idx];
-      document.getElementById('filters').style.display = 'block';
-      filterType = 'all';
-      renderProps();
+
+      showStatus('⏳ Fetching live props...', 'info');
+      try {
+        const response = await fetch(`${API_BASE}/api/games?action=props`);
+        const data = await response.json();
+
+        if (!data.success) {
+          showStatus('Error fetching props', 'error');
+          return;
+        }
+
+        parseProps(data.data);
+        showStatus('✅ Props updated!', 'success');
+      } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+      }
     }
 
-    function filterProps(type, btn) {
-      filterType = type;
-      document.querySelectorAll('#filters button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderProps();
-    }
+    function parseProps(propsData) {
+      allProps = [];
 
-    function renderProps() {
-      if (!currentGame) return;
-
-      const mockProps = [
-        {name: 'QB Passing Yards', type: 'pass', stat: 'Passing Yards', line: 245, odds: -110, bookmaker: 'FanDuel'},
-        {name: 'WR Receiving Yards', type: 'rec', stat: 'Receiving Yards', line: 75, odds: -110, bookmaker: 'DraftKings'},
-        {name: 'RB Rushing Yards', type: 'rush', stat: 'Rushing Yards', line: 65, odds: -110, bookmaker: 'FanDuel'},
-        {name: 'Anytime TD', type: 'td', stat: 'Anytime TD', line: 0.5, odds: -110, bookmaker: 'DraftKings'},
-      ];
-      
-      let filtered = mockProps;
-      if (filterType !== 'all') {
-        filtered = mockProps.filter(p => p.type === filterType);
+      if (!propsData.bookmakers || propsData.bookmakers.length === 0) {
+        document.getElementById('propsList').innerHTML = '<div class="empty">No props available</div>';
+        return;
       }
 
-      let html = '';
-      filtered.forEach((p, idx) => {
-        html += `<div class="prop">
-          <strong>#${idx + 1} - ${p.name}</strong>
-          <div class="prop-detail"><strong>${p.stat}</strong></div>
-          <div class="stats-row">
-            <div class="stat-item">
-              <div style="font-size:12px;color:#666;">BOOKMAKER</div>
-              <div style="font-size:14px;font-weight:bold;">${p.bookmaker}</div>
-            </div>
-            <div class="stat-item">
-              <div style="font-size:12px;color:#666;">LINE</div>
-              <div style="font-size:18px;font-weight:bold;">${p.line}</div>
-            </div>
-            <div class="stat-item">
-              <div style="font-size:12px;color:#666;">ODDS</div>
-              <div style="font-size:18px;font-weight:bold;">${p.odds}</div>
-            </div>
-          </div>
-        </div>`;
+      // Extract unique props from all bookmakers
+      const propsMap = new Map();
+
+      propsData.bookmakers.forEach(bookmaker => {
+        bookmaker.markets?.forEach(market => {
+          market.outcomes?.forEach(outcome => {
+            const key = `${outcome.description}-${market.key}`;
+            if (!propsMap.has(key)) {
+              propsMap.set(key, {
+                player: outcome.description,
+                type: market.key,
+                odds: outcome.price,
+                bookmaker: bookmaker.title
+              });
+            }
+          });
+        });
       });
 
-      document.getElementById('props').innerHTML = html || '<p>No props</p>';
-      
-      let recHtml = '<div style="padding:15px;background:#f0f7ff;border-radius:10px;border-left:5px solid #10b981;">';
-      recHtml += '<strong>Live Props</strong>';
-      recHtml += '<p style="margin-top:10px;color:#555;">Odds update every 30 seconds.</p>';
-      recHtml += '</div>';
-      
-      document.getElementById('recsBody').innerHTML = recHtml;
-      document.getElementById('recommendations').style.display = 'block';
+      allProps = Array.from(propsMap.values());
+      filterProps(currentFilter);
     }
 
-    function updateStatus(text, mode) {
-      document.getElementById('statusText').textContent = text;
-      document.getElementById('status').className = `status ${mode}`;
+    function filterProps(type) {
+      currentFilter = type;
+
+      // Update active button
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      let filtered = allProps;
+
+      if (type !== 'all') {
+        filtered = allProps.filter(prop => prop.type.includes(type));
+      }
+
+      const propsList = document.getElementById('propsList');
+
+      if (filtered.length === 0) {
+        propsList.innerHTML = '<div class="empty">No props found for this filter</div>';
+        return;
+      }
+
+      propsList.innerHTML = filtered.map(prop => `
+        <div class="prop">
+          <div class="prop-player">${prop.player}</div>
+          <div class="prop-type">${formatPropType(prop.type)}</div>
+          <div class="prop-odds">
+            <span>${prop.bookmaker}</span>
+            <strong>${prop.odds?.toFixed(2) || 'N/A'}</strong>
+          </div>
+        </div>
+      `).join('');
     }
+
+    function formatPropType(type) {
+      const typeMap = {
+        'player_pass_yds': 'Pass Yards',
+        'player_pass_tds': 'Pass TDs',
+        'player_rush_yds': 'Rush Yards',
+        'player_rec_yds': 'Rec Yards',
+        'player_rec_rec': 'Receptions'
+      };
+      return typeMap[type] || type;
+    }
+
+    document.getElementById('gameSelect').addEventListener('change', (e) => {
+      selectedGameId = e.target.value;
+      document.getElementById('propsList').innerHTML = selectedGameId 
+        ? '<div class="loading">Click "Update Live Odds" to fetch props for this game</div>' 
+        : '<div class="empty">Select a game to see props</div>';
+    });
+
+    // Load games on page load
+    window.addEventListener('load', refreshGames);
   </script>
 </body>
 </html>
+
