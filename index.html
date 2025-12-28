@@ -309,7 +309,9 @@
       }
     }
 
-    async function updateLiveOdds() {
+    300
+      312
+        () {
       if (!selectedGameId) {
         showStatus('Please select a game first', 'error');
         return;
@@ -317,7 +319,7 @@
 
       showStatus('⏳ Fetching live props...', 'info');
       try {
-        const response = await fetch(`${API_BASE}/api/games?action=props`);
+      const response = await fetch(`${API_BASE}/api/games?action=props&gameId=${selectedGameId}`);          ;
         const data = await response.json();
 
         if (!data.success) {
@@ -332,7 +334,8 @@
       }
     }
 
-    function parseProps(propsData) {
+    336
+      (propsData) {
       allProps = [];
 
       if (!propsData.bookmakers || propsData.bookmakers.length === 0) {
